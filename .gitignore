@@ -1,0 +1,4 @@
+*.o
+transport-binaries/
+transport-binaries.tar.xz
+.vscode
