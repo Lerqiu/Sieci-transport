@@ -1,10 +1,9 @@
 CC      = gcc -g
-# CFLAGS  = -Wall -Werror -std=gnu17 -ggdb3 -Og
-CFLAGS =
+CFLAGS  = -Wall -Werror -std=gnu17 -ggdb3 -Og
 LDFLAGS =
 PRG     = transport
 
-OBJFILE =  Output.o  Main.o  Input.o Socket.o Manager.o Repository.o
+OBJFILE =  Output.o  Main.o  Input.o Socket.o Manager.o Repository.o RoundTripTime.o
 
 ${PRG}: ${OBJFILE}
 	${CC} ${OBJFILE} ${LDFLAGS} -o $@

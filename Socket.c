@@ -12,11 +12,10 @@
 #include "Manager.h"
 
 static int sockfd = -1;
-static struct sockaddr_in *addr = NULL;
 
-void Socket_init(struct sockaddr_in *_addr)
+void Socket_init(struct sockaddr_in *addr)
 {
-    assert(sockfd == -1 && addr == NULL);
+    assert(sockfd == -1);
 
     int _sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (_sockfd < 0)
@@ -24,33 +23,39 @@ void Socket_init(struct sockaddr_in *_addr)
         fprintf(stderr, "socket error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
+    if (connect(_sockfd, (struct sockaddr *)addr, sizeof(*addr)))
+    {
+        fprintf(stderr, "connection error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
     sockfd = _sockfd;
-    addr = _addr;
+    free(addr);
 }
 
 void Socket_free()
 {
-    free(addr);
     close(sockfd);
-    addr = NULL;
     sockfd = -1;
 }
 
 static void _send(unsigned start, unsigned size)
 {
-    assert(sockfd != -1 && addr != NULL);
+    assert(sockfd != -1);
 
     char data[30];
-    sprintf(data, "GET %u %u\n", start, size);
+    if(sprintf(data, "GET %u %u\n", start, size) < 7)
+    {
+        fprintf(stderr, "sprintf error %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
     int dataLen = strlen(data) + 1;
 
-    if (sendto(sockfd, data, dataLen, 0, (struct sockaddr *)addr, sizeof(*addr)) != dataLen)
+    if (send(sockfd, data, dataLen, 0) != dataLen)
     {
-        fprintf(stderr, "sendto error %s\n", strerror(errno));
-        exit(1);
+        fprintf(stderr, "send error %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
     }
-  //  fprintf(stderr, "Wysłano\n");
 }
 
 void Socket_send(Record *record)
@@ -75,8 +80,7 @@ static void _receive()
 
 void Socket_receive(struct timeval timeout)
 {
-    assert(sockfd != -1 && addr != NULL);
-   // fprintf(stderr, "Czas czekania %u %u\n", timeout.tv_sec, timeout.tv_usec);
+    assert(sockfd != -1);
     while (timeout.tv_sec > 0 || timeout.tv_usec > 0)
     {
         fd_set readfds;

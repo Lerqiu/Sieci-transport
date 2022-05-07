@@ -17,14 +17,12 @@ int main(int argc, char *argv[])
   Manager_init(Input_getSize(argc, argv));
   Socket_init(Input_getAddr(argc, argv));
 
-  while (!Manager_isCompleted())
-  {
-    Manager_performStep();
-  }
+  Manager_run();
 
   Socket_free();
-  Output_free();
   Manager_free();
+  Repository_free();
+  Output_free();
 
   return EXIT_SUCCESS;
 }

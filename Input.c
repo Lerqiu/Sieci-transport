@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <assert.h>
 #include "Main.h"
 
 static void _correctInputAmount(int argc)
@@ -24,6 +25,7 @@ struct sockaddr_in *Input_getAddr(int argc, char *argv[])
     char *stringPort = argv[2];
 
     struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
+    assert(addr != NULL);
     bzero(addr, sizeof(*addr));
     addr->sin_family = AF_INET;
 
@@ -34,7 +36,7 @@ struct sockaddr_in *Input_getAddr(int argc, char *argv[])
     }
 
     uint16_t port;
-    if (sscanf(stringPort, "%u", &port) != 1 && port == 0)
+    if (sscanf(stringPort, "%hu", &port) != 1 && port == 0)
     {
         fprintf(stderr, "Wrong port %u %s\n", port, stringPort);
         exit(EXIT_FAILURE);

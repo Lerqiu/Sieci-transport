@@ -69,6 +69,7 @@ void Repository_addResponse(Record *record)
 void Repository_addRequest(Record *record)
 {
     RepositoryRecord *rRecord = malloc(sizeof(RepositoryRecord));
+    assert(rRecord != NULL);
     rRecord->record = record;
     TAILQ_INSERT_TAIL(&rQueue, rRecord, entries);
     freeSpace--;

@@ -22,7 +22,7 @@ void Output_init(char path[])
         fprintf(stderr, "Open error %d <->  %s\n", fd, strerror(errno));
         exit(EXIT_FAILURE);
     }
-    if (ftruncate(fd, 0) != 0)
+    if (ftruncate(fd, 0))
     {
         fprintf(stderr, "Open error %d <->  %s\n", fd, strerror(errno));
         exit(EXIT_FAILURE);
