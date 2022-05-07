@@ -100,7 +100,6 @@ void Socket_receive(struct timeval time)
 {
     if (!timerisset(&time))
         return;
-    printf("Time: %lu %lu\n", time.tv_sec, time.tv_usec);
     while (_wait(&time))
         ;
 }

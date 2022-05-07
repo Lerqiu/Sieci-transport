@@ -43,7 +43,6 @@ void RoundTripTime_updateRoundTripTime(RecordTimeout *tRecord)
         {
             roundTripTime.tv_sec = newRoundTrip.tv_sec;
             roundTripTime.tv_usec = newRoundTrip.tv_usec;
-            printf("Zmiana czasu : %lu %lu\n", roundTripTime.tv_sec, roundTripTime.tv_usec);
         }
     }
 }
