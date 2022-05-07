@@ -44,7 +44,7 @@ static void _send(unsigned start, unsigned size)
     assert(sockfd != -1);
 
     char data[30];
-    if(sprintf(data, "GET %u %u\n", start, size) < 7)
+    if (sprintf(data, "GET %u %u\n", start, size) < 7)
     {
         fprintf(stderr, "sprintf error %s\n", strerror(errno));
         exit(EXIT_FAILURE);
@@ -78,23 +78,29 @@ static void _receive()
     Manager_manageResponse(buffer);
 }
 
-void Socket_receive(struct timeval timeout)
+static bool _wait(struct timeval *time)
 {
-    assert(sockfd != -1);
-    while (timeout.tv_sec > 0 || timeout.tv_usec > 0)
+    fd_set readfds;
+
+    FD_ZERO(&readfds);
+    FD_SET(sockfd, &readfds);
+
+    int selectResult = select(sockfd + 1, &readfds, NULL, NULL, time);
+    assert(selectResult >= 0);
+
+    if (FD_ISSET(sockfd, &readfds))
     {
-        fd_set readfds;
-
-        FD_ZERO(&readfds);
-        FD_SET(sockfd, &readfds);
-
-        int selectResult = select(sockfd + 1, &readfds, NULL, NULL, &timeout);
-        assert(selectResult >= 0);
-
-        if (FD_ISSET(sockfd, &readfds))
-        {
-            _receive();
-            return;
-        }
+        _receive();
+        return true;
     }
+    return false;
+}
+
+void Socket_receive(struct timeval time)
+{
+    if (!timerisset(&time))
+        return;
+    printf("Time: %lu %lu\n", time.tv_sec, time.tv_usec);
+    while (_wait(&time))
+        ;
 }

@@ -1,6 +1,7 @@
 #include <sys/time.h>
 #include <aio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "Main.h"
 #include "Manager.h"
 
@@ -23,7 +24,7 @@ void RoundTripTime_getWaitTime(RecordTimeout *record, struct timeval *out)
     struct timeval zero;
     zero.tv_sec = 0;
     zero.tv_usec = 0;
-    
+
     timeradd(&zero, out, &current);
     for (int i = RoundTripTimeADD; i > 0; i--)
     {
@@ -42,6 +43,7 @@ void RoundTripTime_updateRoundTripTime(RecordTimeout *tRecord)
         {
             roundTripTime.tv_sec = newRoundTrip.tv_sec;
             roundTripTime.tv_usec = newRoundTrip.tv_usec;
+            printf("Zmiana czasu : %lu %lu\n", roundTripTime.tv_sec, roundTripTime.tv_usec);
         }
     }
 }

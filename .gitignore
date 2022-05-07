@@ -3,3 +3,5 @@ transport-binaries/
 transport-binaries.tar.xz
 .vscode
 valgrind*
+log
+output
