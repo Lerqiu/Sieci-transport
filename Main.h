@@ -1,9 +1,10 @@
-#ifndef MY_MAIN
-#define MY_MAIN
+#pragma once
 
-#define MAXTIMEOUT 1
+#define RoundTripTimeS 1
+#define RoundTripTimeUS 0
+#define RoundTripTimeADD 2
 
 #define PACKAGE_MAX_START 10000000
 #define PACKAGE_MAX_LEN 1000
 
-#endif
+#define REPOSITORY_SIZE 1000

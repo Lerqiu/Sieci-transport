@@ -12,7 +12,7 @@ ${PRG}: ${OBJFILE}
 %.o: %.c *.h
 	${CC} $<  -c ${CFLAGS} -o $@
 
-.PHONY: clean  run
+.PHONY: clean  run check
 
 distclean:
 	rm -f ${PRG}
@@ -20,3 +20,11 @@ distclean:
 
 clean:
 	rm -f ${OBJFILE}
+
+check:
+	valgrind --leak-check=full \
+			--show-leak-kinds=all \
+			--track-origins=yes \
+			--verbose \
+			--log-file=valgrind-out.txt \
+			./transport 127.0.0.1 50001 output 15123

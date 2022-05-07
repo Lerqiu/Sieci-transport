@@ -8,8 +8,8 @@
 #include <limits.h>
 #include <assert.h>
 #include "Main.h"
-#include "Repository.h"
 #include "Socket.h"
+#include "Manager.h"
 
 static int sockfd = -1;
 static struct sockaddr_in *addr = NULL;
@@ -37,7 +37,7 @@ void Socket_free()
     sockfd = -1;
 }
 
-void _send(unsigned start, unsigned size)
+static void _send(unsigned start, unsigned size)
 {
     assert(sockfd != -1 && addr != NULL);
 
@@ -50,15 +50,10 @@ void _send(unsigned start, unsigned size)
         fprintf(stderr, "sendto error %s\n", strerror(errno));
         exit(1);
     }
+  //  fprintf(stderr, "Wysłano\n");
 }
 
-void Socket_send(unsigned start, unsigned size)
-{
-    _send(start, size);
-    Repository_addRequest(start, size);
-}
-
-void Socket_resend(Record *record)
+void Socket_send(Record *record)
 {
     _send(record->start, record->size);
 }
@@ -75,17 +70,13 @@ static void _receive()
         exit(EXIT_FAILURE);
     }
 
-    Repository_addResponse(buffer);
+    Manager_manageResponse(buffer);
 }
 
-void Socket_receive(unsigned timout)
+void Socket_receive(struct timeval timeout)
 {
     assert(sockfd != -1 && addr != NULL);
-
-    struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-
+   // fprintf(stderr, "Czas czekania %u %u\n", timeout.tv_sec, timeout.tv_usec);
     while (timeout.tv_sec > 0 || timeout.tv_usec > 0)
     {
         fd_set readfds;

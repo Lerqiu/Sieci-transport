@@ -1,5 +1,4 @@
-#ifndef MY_REPOSITORY
-#define MY_REPOSITORY
+#pragma once
 
 #include <netinet/ip.h>
 #include <stdbool.h>
@@ -14,13 +13,8 @@ typedef struct
 void Repository_init();
 void Repository_free();
 
-void Repository_flush();
+void Repository_addResponse(Record *);
+void Repository_addRequest(Record *);
+
 unsigned Repository_freeSpace();
-
-void Repository_addResponse(u_int8_t *buffor);
-void Repository_addRequest(unsigned start, unsigned size);
 bool Repository_isFree();
-
-void Repository_forEach(void (*func)(Record *));
-
-#endif

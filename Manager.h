@@ -1,11 +1,12 @@
-#ifndef MY_MANAGER
-#define MY_MANAGER
+#pragma once
 
 #include <stdbool.h>
 
 bool Manager_isCompleted();
-void Manager_init(unsigned _size);
+void Manager_init(unsigned);
 void Manager_free();
-void Manager_performStep();
 
-#endif
+void Manager_performStep();
+void Manager_manageResponse(u_int8_t *);
+
+void Manager_sendRestPakages();

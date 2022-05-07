@@ -12,7 +12,7 @@ static void _correctInputAmount(int argc)
     if (argc != 5)
     {
         fprintf(stderr, "Incorrect input amount!\n");
-        exit(2);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -30,14 +30,14 @@ struct sockaddr_in *Input_getAddr(int argc, char *argv[])
     if (inet_pton(AF_INET, stringIP, &(addr->sin_addr)) != 1)
     {
         fprintf(stderr, "Wrong ip format %s\n", stringIP);
-        exit(3);
+        exit(EXIT_FAILURE);
     }
 
     uint16_t port;
     if (sscanf(stringPort, "%u", &port) != 1 && port == 0)
     {
         fprintf(stderr, "Wrong port %u %s\n", port, stringPort);
-        exit(4);
+        exit(EXIT_FAILURE);
     }
     addr->sin_port = htons(port);
 
@@ -53,7 +53,7 @@ unsigned Input_getSize(int argc, char *argv[])
     if (sscanf(stringSize, "%u", &size) != 1 || (PACKAGE_MAX_START + PACKAGE_MAX_LEN < size) || size == 0)
     {
         fprintf(stderr, "Wrong size %u %s\n", size, stringSize);
-        exit(4);
+        exit(EXIT_FAILURE);
     }
     return size;
 }
@@ -67,7 +67,7 @@ char *Input_getFilePath(int argc, char *argv[])
     if (len == 0)
     {
         fprintf(stderr, "Wrong size %u %s\n", len, path);
-        exit(5);
+        exit(EXIT_FAILURE);
     }
     return path;
 }

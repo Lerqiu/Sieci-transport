@@ -8,105 +8,78 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <sys/queue.h>
 #include "Main.h"
 #include "Repository.h"
 #include "Output.h"
+#include "Manager.h"
 
-static Record **repoData = NULL;
+typedef struct rRecord
+{
+    TAILQ_ENTRY(rRecord)
+    entries;
+    Record *record;
+} RepositoryRecord;
+
+TAILQ_HEAD(RepoQueue, rRecord);
+static struct RepoQueue rQueue;
+static unsigned freeSpace = REPOSITORY_SIZE;
 
 void Repository_init()
 {
-    assert(repoData == NULL);
-
-    repoData = malloc(sizeof(Record *));
-    *repoData = NULL;
+    TAILQ_INIT(&rQueue);
 }
 
 void Repository_free()
 {
-    assert(repoData != NULL);
-
-    free(repoData);
-    repoData = NULL;
+    while (!TAILQ_EMPTY(&rQueue))
+        TAILQ_REMOVE(&rQueue, TAILQ_FIRST(&rQueue), entries);
 }
 
-static Record *_createRecordHeader(unsigned start, unsigned size)
+static void _flushConsistentData()
 {
-    Record *record = malloc(sizeof(Record));
-    assert(record != NULL);
-    record->start = start;
-    record->size = size;
-    record->buffer = NULL;
-    return record;
-}
-
-static Record *_bufforToRecord(u_int8_t buffor[])
-{
-    unsigned start, size, offset = 8;
-
-    assert(sscanf(buffor, "DATA %u %u\n", &start, &size) == 2);
-    while (buffor[offset++] != '\n' && offset < 100)
-        ;
-    assert(offset < 100);
-
-    Record *record = _createRecordHeader(start, size);
-    record->buffer = malloc(sizeof(u_int8_t) * size);
-    for (unsigned dataIntex = 0; dataIntex < size; dataIntex++)
+    RepositoryRecord *r;
+    while (!TAILQ_EMPTY(&rQueue) && (r = TAILQ_FIRST(&rQueue))->record->buffer != NULL)
     {
-        record->buffer[dataIntex] = buffor[dataIntex + offset];
+        TAILQ_REMOVE(&rQueue, r, entries);
+        Output_write(r->record->buffer, r->record->size);
+        free(r->record->buffer);
+        free(r->record);
+        free(r);
+        freeSpace++;
+        Manager_sendRestPakages();
     }
-
-    return record;
 }
 
-void Repository_addResponse(u_int8_t *buffor)
+void Repository_addResponse(Record *record)
 {
-    Record *record = _bufforToRecord(buffor);
-
-    if (*repoData != NULL &&
-        (*repoData)->start == record->start &&
-        (*repoData)->size == record->size &&
-        (*repoData)->buffer == NULL)
+    RepositoryRecord *r;
+    TAILQ_FOREACH(r, &rQueue, entries)
+    if (r->record->start == record->start &&
+        r->record->size == record->size &&
+        r->record->buffer == NULL)
     {
-        (*repoData)->buffer = record->buffer;
+        r->record->buffer = record->buffer;
+        free(record);
+        _flushConsistentData();
+        return;
     }
-
-    free(record);
 }
 
-void Repository_addRequest(unsigned start, unsigned size)
+void Repository_addRequest(Record *record)
 {
-    Record *record = _createRecordHeader(start, size);
-    assert(*repoData == NULL);
-    *repoData = record;
+    RepositoryRecord *rRecord = malloc(sizeof(RepositoryRecord));
+    rRecord->record = record;
+    TAILQ_INSERT_TAIL(&rQueue, rRecord, entries);
+    freeSpace--;
 }
 
 unsigned Repository_freeSpace()
 {
-    if (*repoData == NULL)
-        return 1;
-    return 0;
-}
-
-void Repository_flush()
-{
-    if (*repoData != NULL && (*repoData)->buffer != NULL)
-    {
-        Output_write((*repoData)->buffer, (*repoData)->size);
-        free((*repoData)->buffer);
-        free(*repoData);
-        *repoData = NULL;
-    }
+    return freeSpace;
 }
 
 bool Repository_isFree()
 {
-    return *repoData == NULL;
-}
-
-void Repository_forEach(void (*func)(Record *))
-{
-    assert(repoData != NULL);
-    if (*repoData != NULL)
-        func(*repoData);
+    return freeSpace == REPOSITORY_SIZE;
 }
